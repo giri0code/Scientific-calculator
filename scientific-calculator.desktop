@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Scientific Calculator
+Comment=A feature-rich scientific calculator with keyboard support
+Exec=/home/user/Music/mojoprac/calculator
+Icon=accessories-calculator
+Terminal=false
+Categories=Utility;Calculator;Science;Math;
+Keywords=calculator;scientific;math;arithmetic;
+StartupNotify=true
+StartupWMClass=Scientific Calculator
+MimeType=application/x-calculator;

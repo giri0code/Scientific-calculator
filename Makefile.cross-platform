@@ -1,0 +1,103 @@
+# Cross-Platform Makefile for Scientific Calculator
+
+# Detect OS
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    OS = LINUX
+endif
+ifeq ($(UNAME_S),Darwin)
+    OS = MACOS
+endif
+ifeq ($(OS),Windows_NT)
+    OS = WINDOWS
+endif
+
+# Compiler settings
+CXX = g++
+CXXFLAGS = -Wall -Wextra -std=c++11
+
+# Target executable
+TARGET = calculator
+ifeq ($(OS),WINDOWS)
+    TARGET = calculator.exe
+endif
+
+# Source files
+SOURCES = calculator.cpp
+OBJECTS = $(SOURCES:.cpp=.o)
+
+# Platform-specific settings
+ifeq ($(OS),LINUX)
+    CXXFLAGS += `pkg-config --cflags gtk+-3.0`
+    LDFLAGS = `pkg-config --libs gtk+-3.0`
+endif
+
+ifeq ($(OS),WINDOWS)
+    # Windows GTK3 settings (requires MSYS2/MinGW)
+    CXXFLAGS += `pkg-config --cflags gtk+-3.0`
+    LDFLAGS = `pkg-config --libs gtk+-3.0` -mwindows
+endif
+
+ifeq ($(OS),MACOS)
+    # macOS GTK3 settings (requires Homebrew)
+    CXXFLAGS += `pkg-config --cflags gtk+-3.0`
+    LDFLAGS = `pkg-config --libs gtk+-3.0`
+endif
+
+# Default target
+all: $(TARGET)
+
+# Build target
+$(TARGET): $(OBJECTS)
+	$(CXX) $(OBJECTS) -o $(TARGET) $(LDFLAGS)
+
+# Compile source files
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Clean build files
+clean:
+	rm -f $(OBJECTS) $(TARGET)
+
+# Install (Linux/macOS only)
+install: $(TARGET)
+ifeq ($(OS),LINUX)
+	./install.sh
+else
+	@echo "Installation script is only available for Linux"
+	@echo "On other platforms, run the executable directly"
+endif
+
+# Package for distribution
+package: $(TARGET)
+ifeq ($(OS),WINDOWS)
+	mkdir -p dist
+	cp $(TARGET) dist/
+	cp README.md dist/ 2>/dev/null || echo "No README found"
+	zip -r scientific-calculator-windows.zip dist/
+else ifeq ($(OS),MACOS)
+	mkdir -p dist
+	cp $(TARGET) dist/
+	cp README.md dist/ 2>/dev/null || echo "No README found"
+	tar -czf scientific-calculator-macos.tar.gz dist/
+else
+	mkdir -p dist
+	cp $(TARGET) dist/
+	cp scientific-calculator.desktop dist/
+	cp install.sh dist/
+	cp README.md dist/ 2>/dev/null || echo "No README found"
+	tar -czf scientific-calculator-linux.tar.gz dist/
+endif
+
+# Help
+help:
+	@echo "Available targets:"
+	@echo "  all      - Build the calculator"
+	@echo "  clean    - Remove build files"
+	@echo "  install  - Install as desktop application (Linux only)"
+	@echo "  package  - Create distribution package"
+	@echo "  help     - Show this help"
+	@echo ""
+	@echo "Current OS: $(OS)"
+
+.PHONY: all clean install package help
